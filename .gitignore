@@ -12,3 +12,5 @@ places
 recentf
 site-lisp
 url
+*~
+aa-snippets/*/*.el

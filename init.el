@@ -15,6 +15,16 @@
 (require 'compile)
 (require 'cc-mode)
 
+;; defadvices
+(defadvice set-mark-command (after no-bloody-t-m-m activate)
+  (if transient-mark-mode (setq transient-mark-mode nil)))
+(defadvice ibuffer
+    (around ibuffer-point-to-most-recent) ()
+    "Open ibuffer with cursor pointed to most recent buffer name."
+    (let ((recent-buffer-name (buffer-name)))
+      ad-do-it
+      (ibuffer-jump-to-buffer recent-buffer-name)))
+
 ;; common variables
 (setq ring-bell-function 'ignore
       undo-limit 20000000
@@ -30,24 +40,12 @@
       ido-create-new-buffer 'always
       frame-title-format "%b (%f)"
       dired-kill-when-opening-new-dired-buffer t
-      aa-notes-file-path "/Users/MXA5JMX/thd/thd_doc/aa_notes.org"
-      aa-todo-file-path "/Users/MXA5JMX/thd/thd_doc/aa_todo.org"
-      aa-thd-file-path "/Users/MXA5JMX/thd/thd_doc/aa_thd.org"
-      aa-journal-file-path "/Users/MXA5JMX/thd/thd_doc/aa_journal.org"
-      )
-(setq kill-buffer-query-functions
-      (remq 'process-kill-buffer-query-function
-            kill-buffer-query-functions))
-
-;; defadvices
-(defadvice set-mark-command (after no-bloody-t-m-m activate)
-  (if transient-mark-mode (setq transient-mark-mode nil)))
-(defadvice ibuffer
-    (around ibuffer-point-to-most-recent) ()
-    "Open ibuffer with cursor pointed to most recent buffer name."
-    (let ((recent-buffer-name (buffer-name)))
-      ad-do-it
-      (ibuffer-jump-to-buffer recent-buffer-name)))
+      aa-notes-file-path "~/thd/thd_doc/aa_notes.org"
+      aa-todo-file-path "~/thd/thd_doc/aa_todo.org"
+      aa-thd-file-path "~/thd/thd_doc/aa_thd.org"
+      aa-journal-file-path "~/thd/thd_doc/aa_journal.org"
+      yas-snippet-dirs '("~/.emacs.d/aa-snippets")
+      kill-buffer-query-functions (remq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
 ;; global modes
 (ido-mode t)
@@ -65,6 +63,8 @@
 (put 'erase-buffer 'disabled nil)
 (ad-activate 'ibuffer)
 (put 'dired-find-alternate-file 'disabled nil)
+(yas-global-mode 1)
+(yas-reload-all)
 
 ;; functions
 (defun post-load-stuff ()
@@ -190,6 +190,15 @@
 (defun kill-other-buffers ()
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+(defun which-active-modes ()
+  (interactive)
+  (let ((active-modes))
+    (mapc (lambda (mode) (condition-case nil
+                             (if (and (symbolp mode) (symbol-value mode))
+                                 (add-to-list 'active-modes mode))
+                           (error nil) ))
+          minor-mode-list)
+    (message "Active modes are %s" active-modes)))
 
 ;; org mode variables
 (setq org-agenda-start-with-log-mode t)
